@@ -6,7 +6,6 @@ import (
 	"expvar"
 	"net"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -65,11 +64,9 @@ func Initialize(
 	manager = mm
 
 	// Content Paths
-	staticPath := filepath.Join(conf.Web.UIDir, staticDir)
 	log.Info().Str("module", "web").Str("phase", "startup").Str("path", conf.Web.UIDir).
 		Msg("Web UI content mapped")
-	Router.PathPrefix("/public/").Handler(http.StripPrefix("/public/",
-		http.FileServer(http.Dir(staticPath))))
+	Router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(conf.Web.UIDir))))
 	http.Handle("/", Router)
 
 	// Session cookie setup

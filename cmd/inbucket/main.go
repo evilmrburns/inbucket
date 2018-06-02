@@ -127,7 +127,7 @@ func main() {
 	// Start HTTP server.
 	web.Initialize(conf, shutdownChan, mmanager, msgHub)
 	http.Handle("/api/", rest.NewRouter())
-	webui.SetupRoutes(web.Router)
+	http.Handle("/serve/", webui.NewRouter())
 	go web.Start(rootCtx)
 	// Start POP3 server.
 	pop3Server := pop3.New(conf.POP3, shutdownChan, store)

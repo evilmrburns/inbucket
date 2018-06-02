@@ -22,7 +22,7 @@ func testRestGet(url string) (*httptest.ResponseRecorder, error) {
 		return nil, err
 	}
 	w := httptest.NewRecorder()
-	web.Router.ServeHTTP(w, req)
+	http.DefaultServeMux.ServeHTTP(w, req)
 	return w, nil
 }
 
@@ -33,7 +33,7 @@ func testRestPatch(url string, body string) (*httptest.ResponseRecorder, error) 
 		return nil, err
 	}
 	w := httptest.NewRecorder()
-	web.Router.ServeHTTP(w, req)
+	http.DefaultServeMux.ServeHTTP(w, req)
 	return w, nil
 }
 
@@ -51,7 +51,7 @@ func setupWebServer(mm message.Manager) *bytes.Buffer {
 	}
 	shutdownChan := make(chan bool)
 	web.Initialize(cfg, shutdownChan, mm, &msghub.Hub{})
-	SetupRoutes(web.Router)
+	http.DefaultServeMux.Handle("/api/", NewRouter())
 
 	return buf
 }

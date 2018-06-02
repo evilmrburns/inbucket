@@ -3,8 +3,9 @@ package rest
 import "github.com/gorilla/mux"
 import "github.com/jhillyerd/inbucket/pkg/server/web"
 
-// SetupRoutes populates the routes for the REST interface
-func SetupRoutes(r *mux.Router) {
+// NewRouter returns a router configured for the REST interface.
+func NewRouter() *mux.Router {
+	r := mux.NewRouter()
 	// API v1
 	r.Path("/api/v1/mailbox/{name}").Handler(
 		web.Handler(MailboxListV1)).Name("MailboxListV1").Methods("GET")
@@ -22,4 +23,5 @@ func SetupRoutes(r *mux.Router) {
 		web.Handler(MonitorAllMessagesV1)).Name("MonitorAllMessagesV1").Methods("GET")
 	r.Path("/api/v1/monitor/messages/{name}").Handler(
 		web.Handler(MonitorMailboxMessagesV1)).Name("MonitorMailboxMessagesV1").Methods("GET")
+	return r
 }

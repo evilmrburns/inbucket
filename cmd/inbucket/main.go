@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -125,7 +126,7 @@ func main() {
 	retentionScanner.Start()
 	// Start HTTP server.
 	web.Initialize(conf, shutdownChan, mmanager, msgHub)
-	rest.SetupRoutes(web.Router)
+	http.Handle("/api/", rest.NewRouter())
 	webui.SetupRoutes(web.Router)
 	go web.Start(rootCtx)
 	// Start POP3 server.

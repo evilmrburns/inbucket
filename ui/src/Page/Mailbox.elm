@@ -147,22 +147,30 @@ getMessage mailbox id =
 view : Session -> Model -> Html Msg
 view session model =
     div [ id "page", class "mailbox" ]
-        [ aside [ id "message-list" ] [ viewMailbox model ]
-        , main_ [ id "message" ] [ viewMessage model ]
+        [ aside [ id "message-list" ] [ messageList model ]
+        , main_
+            [ id "message" ]
+            [ case model.message of
+                Just message ->
+                    viewMessage message
+
+                Nothing ->
+                    text ""
+            ]
         ]
 
 
-viewMailbox : Model -> Html Msg
-viewMailbox model =
-    div [] (List.map (viewHeader model) (List.reverse model.headers))
+messageList : Model -> Html Msg
+messageList model =
+    div [] (List.map (messageChip model.selected) (List.reverse model.headers))
 
 
-viewHeader : Model -> MessageHeader -> Html Msg
-viewHeader mailbox msg =
+messageChip : Maybe String -> MessageHeader -> Html Msg
+messageChip selected msg =
     div
         [ classList
             [ ( "message-list-entry", True )
-            , ( "selected", mailbox.selected == Just msg.id )
+            , ( "selected", selected == Just msg.id )
             , ( "unseen", not msg.seen )
             ]
         , onClick (ClickMessage msg.id)
@@ -173,33 +181,28 @@ viewHeader mailbox msg =
         ]
 
 
-viewMessage : Model -> Html Msg
-viewMessage model =
+viewMessage : Message -> Html Msg
+viewMessage message =
     let
         sourceUrl message =
             "/serve/m/" ++ message.mailbox ++ "/" ++ message.id ++ "/source"
     in
-        case model.message of
-            Just message ->
-                div []
-                    [ div [ class "button-bar" ]
-                        [ button [ class "danger", onClick (DeleteMessage message) ] [ text "Delete" ]
-                        , a
-                            [ href (sourceUrl message), target "_blank" ]
-                            [ button [] [ text "Source" ] ]
-                        ]
-                    , dl [ id "message-header" ]
-                        [ dt [] [ text "From:" ]
-                        , dd [] [ text message.from ]
-                        , dt [] [ text "To:" ]
-                        , dd [] (List.map text message.to)
-                        , dt [] [ text "Date:" ]
-                        , dd [] [ text message.date ]
-                        , dt [] [ text "Subject:" ]
-                        , dd [] [ text message.subject ]
-                        ]
-                    , article [] [ text message.text ]
-                    ]
-
-            Nothing ->
-                text ""
+        div []
+            [ div [ class "button-bar" ]
+                [ button [ class "danger", onClick (DeleteMessage message) ] [ text "Delete" ]
+                , a
+                    [ href (sourceUrl message), target "_blank" ]
+                    [ button [] [ text "Source" ] ]
+                ]
+            , dl [ id "message-header" ]
+                [ dt [] [ text "From:" ]
+                , dd [] [ text message.from ]
+                , dt [] [ text "To:" ]
+                , dd [] (List.map text message.to)
+                , dt [] [ text "Date:" ]
+                , dd [] [ text message.date ]
+                , dt [] [ text "Subject:" ]
+                , dd [] [ text message.subject ]
+                ]
+            , article [] [ text message.text ]
+            ]

@@ -175,30 +175,31 @@ viewHeader mailbox msg =
 
 viewMessage : Model -> Html Msg
 viewMessage model =
-    case model.message of
-        Just message ->
-            div []
-                [ div [ class "button-bar" ]
-                    [ button [ class "danger", onClick (DeleteMessage message) ] [ text "Delete" ]
-                    , a
-                        [ href
-                            ("/serve/mailbox/" ++ message.mailbox ++ "/" ++ message.id ++ "/source")
-                        , target "_blank"
+    let
+        sourceUrl message =
+            "/serve/m/" ++ message.mailbox ++ "/" ++ message.id ++ "/source"
+    in
+        case model.message of
+            Just message ->
+                div []
+                    [ div [ class "button-bar" ]
+                        [ button [ class "danger", onClick (DeleteMessage message) ] [ text "Delete" ]
+                        , a
+                            [ href (sourceUrl message), target "_blank" ]
+                            [ button [] [ text "Source" ] ]
                         ]
-                        [ button [] [ text "Source" ] ]
+                    , dl [ id "message-header" ]
+                        [ dt [] [ text "From:" ]
+                        , dd [] [ text message.from ]
+                        , dt [] [ text "To:" ]
+                        , dd [] (List.map text message.to)
+                        , dt [] [ text "Date:" ]
+                        , dd [] [ text message.date ]
+                        , dt [] [ text "Subject:" ]
+                        , dd [] [ text message.subject ]
+                        ]
+                    , article [] [ text message.body.text ]
                     ]
-                , dl [ id "message-header" ]
-                    [ dt [] [ text "From:" ]
-                    , dd [] [ text message.from ]
-                    , dt [] [ text "To:" ]
-                    , dd [] (List.map text message.to)
-                    , dt [] [ text "Date:" ]
-                    , dd [] [ text message.date ]
-                    , dt [] [ text "Subject:" ]
-                    , dd [] [ text message.subject ]
-                    ]
-                , article [] [ text message.body.text ]
-                ]
 
-        Nothing ->
-            text ""
+            Nothing ->
+                text ""

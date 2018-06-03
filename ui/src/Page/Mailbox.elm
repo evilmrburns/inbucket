@@ -13,13 +13,7 @@ import Ports
 import Route exposing (Route)
 
 
-inbucketBase : String
-inbucketBase =
-    ""
-
-
-
--- MODEL --
+-- MODEL
 
 
 type alias Model =
@@ -44,7 +38,7 @@ load name =
 
 
 
--- UPDATE --
+-- UPDATE
 
 
 type Msg
@@ -110,7 +104,7 @@ getMailbox : String -> Cmd Msg
 getMailbox name =
     let
         url =
-            inbucketBase ++ "/api/v1/mailbox/" ++ name
+            "/api/v1/mailbox/" ++ name
     in
         Http.get url (Decode.list MessageHeader.decoder)
             |> Http.send NewMailbox
@@ -120,7 +114,7 @@ deleteMessage : Model -> Message -> ( Model, Cmd Msg, Session.Msg )
 deleteMessage model msg =
     let
         url =
-            inbucketBase ++ "/api/v1/mailbox/" ++ msg.mailbox ++ "/" ++ msg.id
+            "/api/v1/mailbox/" ++ msg.mailbox ++ "/" ++ msg.id
 
         cmd =
             HttpUtil.delete url
@@ -140,14 +134,14 @@ getMessage : String -> String -> Cmd Msg
 getMessage mailbox id =
     let
         url =
-            inbucketBase ++ "/api/v1/mailbox/" ++ mailbox ++ "/" ++ id
+            "/api/v1/mailbox/" ++ mailbox ++ "/" ++ id
     in
         Http.get url Message.decoder
             |> Http.send NewMessage
 
 
 
--- VIEW --
+-- VIEW
 
 
 view : Session -> Model -> Html Msg
@@ -188,13 +182,7 @@ viewMessage model =
                     [ button [ class "danger", onClick (DeleteMessage message) ] [ text "Delete" ]
                     , a
                         [ href
-                            (inbucketBase
-                                ++ "/mailbox/"
-                                ++ message.mailbox
-                                ++ "/"
-                                ++ message.id
-                                ++ "/source"
-                            )
+                            ("/serve/mailbox/" ++ message.mailbox ++ "/" ++ message.id ++ "/source")
                         , target "_blank"
                         ]
                         [ button [] [ text "Source" ] ]

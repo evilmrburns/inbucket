@@ -18,7 +18,7 @@ func NewRouter() *mux.Router {
 	r.Path("/serve/status").Handler(
 		web.Handler(RootStatus)).Name("RootStatus").Methods("GET")
 	r.Path("/serve/m/{name}/{id}").Handler(
-		web.Handler(MailboxShow)).Name("MailboxShow").Methods("GET")
+		web.Handler(MailboxMessage)).Name("MailboxMessage").Methods("GET")
 	r.Path("/serve/m/{name}/{id}/html").Handler(
 		web.Handler(MailboxHTML)).Name("MailboxHtml").Methods("GET")
 	r.Path("/serve/m/{name}/{id}/source").Handler(

@@ -13,12 +13,7 @@ type alias Message =
     , date : String
     , size : Int
     , seen : Bool
-    , body : Body
-    }
-
-
-type alias Body =
-    { text : String
+    , text : String
     , html : String
     }
 
@@ -34,11 +29,5 @@ decoder =
         |> required "date" string
         |> required "size" int
         |> required "seen" bool
-        |> required "body" bodyDecoder
-
-
-bodyDecoder : Decoder Body
-bodyDecoder =
-    decode Body
         |> required "text" string
         |> required "html" string

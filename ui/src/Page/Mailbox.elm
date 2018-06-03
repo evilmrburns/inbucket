@@ -134,7 +134,7 @@ getMessage : String -> String -> Cmd Msg
 getMessage mailbox id =
     let
         url =
-            "/api/v1/mailbox/" ++ mailbox ++ "/" ++ id
+            "/serve/m/" ++ mailbox ++ "/" ++ id
     in
         Http.get url Message.decoder
             |> Http.send NewMessage
@@ -198,7 +198,7 @@ viewMessage model =
                         , dt [] [ text "Subject:" ]
                         , dd [] [ text message.subject ]
                         ]
-                    , article [] [ text message.body.text ]
+                    , article [] [ text message.text ]
                     ]
 
             Nothing ->

@@ -30,6 +30,11 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
+a {
+    color: #337ab7;
+    text-decoration: none;
+}
+
 body {
   background-color: var(--bg-color);
 }
@@ -312,6 +317,39 @@ li.navbar-active span,
     grid-column: 2;
   }
 }
+
+nav.tab-bar {
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  margin: 20px 0 10px 0;
+}
+
+nav.tab-bar a {
+  border-radius: 4px 4px 0 0;
+  display: block;
+  margin-bottom: -1px;
+  margin-right: 2px;
+  padding: 8px 15px;
+  text-decoration: none;
+}
+
+nav.tab-bar a.active {
+  color: var(--low-color);
+  border-color: var(--border-color) var(--border-color) var(--bg-color) var(--border-color);
+  border-style: solid;
+  border-width: 1px;
+}
+
+nav.tab-bar a:focus,
+nav.tab-bar a:hover {
+  background-color: var(--selected-color);
+}
+
+nav.tab-bar a.active:focus,
+nav.tab-bar a.active:hover {
+  background-color: var(--bg-color);
+}
+
 
 /** STATUS */
 

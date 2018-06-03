@@ -5,10 +5,11 @@ import Data.MessageHeader as MessageHeader exposing (MessageHeader)
 import Data.Session as Session exposing (Session)
 import Json.Decode as Decode exposing (Decoder)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, href, id, placeholder, target)
+import Html.Attributes exposing (class, classList, href, id, placeholder, property, target)
 import Html.Events exposing (..)
 import Http exposing (Error)
 import HttpUtil
+import Json.Encode exposing (string)
 import Ports
 import Route exposing (Route)
 
@@ -16,17 +17,23 @@ import Route exposing (Route)
 -- MODEL
 
 
+type Body
+    = TextBody
+    | SafeHtmlBody
+
+
 type alias Model =
     { name : String
     , selected : Maybe String
     , headers : List MessageHeader
     , message : Maybe Message
+    , bodyMode : Body
     }
 
 
 init : String -> Maybe String -> Model
 init name id =
-    Model name id [] Nothing
+    Model name id [] Nothing SafeHtmlBody
 
 
 load : String -> Cmd Msg
@@ -46,8 +53,9 @@ type Msg
     | ViewMessage String
     | DeleteMessage Message
     | DeleteMessageResult (Result Http.Error ())
-    | NewMailbox (Result Http.Error (List MessageHeader))
-    | NewMessage (Result Http.Error Message)
+    | MailboxResult (Result Http.Error (List MessageHeader))
+    | MessageResult (Result Http.Error Message)
+    | MessageBody Body
 
 
 update : Session -> Msg -> Model -> ( Model, Cmd Msg, Session.Msg )
@@ -77,7 +85,7 @@ update session msg model =
         DeleteMessageResult (Err err) ->
             ( model, Cmd.none, Session.SetFlash (HttpUtil.errorString err) )
 
-        NewMailbox (Ok headers) ->
+        MailboxResult (Ok headers) ->
             let
                 newModel =
                     { model | headers = headers }
@@ -90,14 +98,30 @@ update session msg model =
                         -- Recurse to select message id.
                         update session (ViewMessage id) newModel
 
-        NewMailbox (Err err) ->
+        MailboxResult (Err err) ->
             ( model, Cmd.none, Session.SetFlash (HttpUtil.errorString err) )
 
-        NewMessage (Ok msg) ->
-            ( { model | message = Just msg }, Cmd.none, Session.none )
+        MessageResult (Ok msg) ->
+            let
+                bodyMode =
+                    if msg.html == "" then
+                        TextBody
+                    else
+                        model.bodyMode
+            in
+                ( { model
+                    | message = Just msg
+                    , bodyMode = bodyMode
+                  }
+                , Cmd.none
+                , Session.none
+                )
 
-        NewMessage (Err err) ->
+        MessageResult (Err err) ->
             ( model, Cmd.none, Session.SetFlash (HttpUtil.errorString err) )
+
+        MessageBody bodyMode ->
+            ( { model | bodyMode = bodyMode }, Cmd.none, Session.none )
 
 
 getMailbox : String -> Cmd Msg
@@ -107,7 +131,7 @@ getMailbox name =
             "/api/v1/mailbox/" ++ name
     in
         Http.get url (Decode.list MessageHeader.decoder)
-            |> Http.send NewMailbox
+            |> Http.send MailboxResult
 
 
 deleteMessage : Model -> Message -> ( Model, Cmd Msg, Session.Msg )
@@ -137,7 +161,7 @@ getMessage mailbox id =
             "/serve/m/" ++ mailbox ++ "/" ++ id
     in
         Http.get url Message.decoder
-            |> Http.send NewMessage
+            |> Http.send MessageResult
 
 
 
@@ -152,10 +176,13 @@ view session model =
             [ id "message" ]
             [ case model.message of
                 Just message ->
-                    viewMessage message
+                    viewMessage message model.bodyMode
 
                 Nothing ->
-                    text ""
+                    text
+                        ("Select a message on the left,"
+                            ++ " or enter a different username into the box on upper right."
+                        )
             ]
         ]
 
@@ -181,8 +208,8 @@ messageChip selected msg =
         ]
 
 
-viewMessage : Message -> Html Msg
-viewMessage message =
+viewMessage : Message -> Body -> Html Msg
+viewMessage message bodyMode =
     let
         sourceUrl message =
             "/serve/m/" ++ message.mailbox ++ "/" ++ message.id ++ "/source"
@@ -204,5 +231,41 @@ viewMessage message =
                 , dt [] [ text "Subject:" ]
                 , dd [] [ text message.subject ]
                 ]
-            , article [] [ text message.text ]
+            , messageBody message bodyMode
+            ]
+
+
+messageBody : Message -> Body -> Html Msg
+messageBody message bodyMode =
+    let
+        bodyModeTab mode label =
+            a
+                [ classList [ ( "active", bodyMode == mode ) ]
+                , onClick (MessageBody mode)
+                , href "javacript:void(0)"
+                ]
+                [ text label ]
+
+        safeHtml =
+            bodyModeTab SafeHtmlBody "Safe HTML"
+
+        plainText =
+            bodyModeTab TextBody "Plain Text"
+
+        tabs =
+            if message.html == "" then
+                [ plainText ]
+            else
+                [ safeHtml, plainText ]
+    in
+        div [ class "tab-panel" ]
+            [ nav [ class "tab-bar" ] tabs
+            , article []
+                [ case bodyMode of
+                    SafeHtmlBody ->
+                        div [ property "innerHTML" (string message.html) ] []
+
+                    TextBody ->
+                        text message.text
+                ]
             ]

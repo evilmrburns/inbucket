@@ -266,6 +266,6 @@ messageBody message bodyMode =
                         div [ property "innerHTML" (string message.html) ] []
 
                     TextBody ->
-                        text message.text
+                        div [ property "innerHTML" (string message.text) ] []
                 ]
             ]

@@ -82,7 +82,7 @@ func MailboxMessage(w http.ResponseWriter, req *http.Request, ctx *web.Context) 
 			Size:        msg.Size,
 			Seen:        msg.Seen,
 			Header:      msg.Header(),
-			Text:        msg.Text(),
+			Text:        web.TextToHTML(msg.Text()),
 			HTML:        htmlBody,
 			Attachments: attachments,
 		})

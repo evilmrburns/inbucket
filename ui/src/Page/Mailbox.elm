@@ -5,7 +5,7 @@ import Data.MessageHeader as MessageHeader exposing (MessageHeader)
 import Data.Session as Session exposing (Session)
 import Json.Decode as Decode exposing (Decoder)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, href, id, placeholder, property, target)
+import Html.Attributes exposing (class, classList, downloadAs, href, id, property, target)
 import Html.Events exposing (..)
 import Http exposing (Error)
 import HttpUtil
@@ -232,6 +232,7 @@ viewMessage message bodyMode =
                 , dd [] [ text message.subject ]
                 ]
             , messageBody message bodyMode
+            , attachments message
             ]
 
 
@@ -260,7 +261,7 @@ messageBody message bodyMode =
     in
         div [ class "tab-panel" ]
             [ nav [ class "tab-bar" ] tabs
-            , article []
+            , article [ class "message-body" ]
                 [ case bodyMode of
                     SafeHtmlBody ->
                         div [ property "innerHTML" (string message.html) ] []
@@ -268,4 +269,31 @@ messageBody message bodyMode =
                     TextBody ->
                         div [ property "innerHTML" (string message.text) ] []
                 ]
+            ]
+
+
+attachments : Message -> Html Msg
+attachments message =
+    let
+        baseUrl =
+            "/serve/m/attach/" ++ message.mailbox ++ "/" ++ message.id ++ "/"
+    in
+        if List.isEmpty message.attachments then
+            div [] []
+        else
+            table [ class "attachments well" ] (List.map (attachmentRow baseUrl) message.attachments)
+
+
+attachmentRow : String -> Message.Attachment -> Html Msg
+attachmentRow baseUrl attach =
+    let
+        url =
+            baseUrl ++ attach.id ++ "/" ++ attach.fileName
+    in
+        tr []
+            [ td []
+                [ a [ href url, target "_blank" ] [ text attach.fileName ]
+                , text (" (" ++ attach.contentType ++ ") ")
+                ]
+            , td [] [ a [ href url, downloadAs attach.fileName, class "button" ] [ text "Download" ] ]
             ]

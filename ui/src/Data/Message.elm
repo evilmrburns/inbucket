@@ -15,6 +15,14 @@ type alias Message =
     , seen : Bool
     , text : String
     , html : String
+    , attachments : List Attachment
+    }
+
+
+type alias Attachment =
+    { id : String
+    , fileName : String
+    , contentType : String
     }
 
 
@@ -31,3 +39,12 @@ decoder =
         |> required "seen" bool
         |> required "text" string
         |> required "html" string
+        |> required "attachments" (list attachmentDecoder)
+
+
+attachmentDecoder : Decoder Attachment
+attachmentDecoder =
+    decode Attachment
+        |> required "id" string
+        |> required "filename" string
+        |> required "content-type" string

@@ -33,8 +33,9 @@ type JSONMessage struct {
 
 // JSONAttachment formats attachment data for the UI.
 type JSONAttachment struct {
-	ID       string `json:"id"`
-	FileName string `json:"filename"`
+	ID          string `json:"id"`
+	FileName    string `json:"filename"`
+	ContentType string `json:"content-type"`
 }
 
 // MailboxMessage outputs a particular message as JSON for the UI.
@@ -56,8 +57,9 @@ func MailboxMessage(w http.ResponseWriter, req *http.Request, ctx *web.Context) 
 	attachments := make([]*JSONAttachment, len(attachParts))
 	for i, part := range attachParts {
 		attachments[i] = &JSONAttachment{
-			ID:       strconv.Itoa(i),
-			FileName: part.FileName,
+			ID:          strconv.Itoa(i),
+			FileName:    part.FileName,
+			ContentType: part.ContentType,
 		}
 	}
 	// Sanitize HTML body.
@@ -135,48 +137,6 @@ func MailboxSource(w http.ResponseWriter, req *http.Request, ctx *web.Context) (
 	// Output message source
 	w.Header().Set("Content-Type", "text/plain")
 	_, err = io.Copy(w, r)
-	return err
-}
-
-// MailboxDownloadAttach sends the attachment to the client; disposition:
-// attachment, type: application/octet-stream
-func MailboxDownloadAttach(w http.ResponseWriter, req *http.Request, ctx *web.Context) (err error) {
-	// Don't have to validate these aren't empty, Gorilla returns 404
-	id := ctx.Vars["id"]
-	name, err := ctx.Manager.MailboxForAddress(ctx.Vars["name"])
-	if err != nil {
-		ctx.Session.AddFlash(err.Error(), "errors")
-		_ = ctx.Session.Save(req, w)
-		http.Redirect(w, req, web.Reverse("RootIndex"), http.StatusSeeOther)
-		return nil
-	}
-	numStr := ctx.Vars["num"]
-	num, err := strconv.ParseUint(numStr, 10, 32)
-	if err != nil {
-		ctx.Session.AddFlash("Attachment number must be unsigned numeric", "errors")
-		_ = ctx.Session.Save(req, w)
-		http.Redirect(w, req, web.Reverse("RootIndex"), http.StatusSeeOther)
-		return nil
-	}
-	msg, err := ctx.Manager.GetMessage(name, id)
-	if err == storage.ErrNotExist {
-		http.NotFound(w, req)
-		return nil
-	}
-	if err != nil {
-		// This doesn't indicate empty, likely an IO error
-		return fmt.Errorf("GetMessage(%q) failed: %v", id, err)
-	}
-	if int(num) >= len(msg.Attachments()) {
-		ctx.Session.AddFlash("Attachment number too high", "errors")
-		_ = ctx.Session.Save(req, w)
-		http.Redirect(w, req, web.Reverse("RootIndex"), http.StatusSeeOther)
-		return nil
-	}
-	// Output attachment
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment")
-	_, err = w.Write(msg.Attachments()[num].Content)
 	return err
 }
 

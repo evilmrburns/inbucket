@@ -297,5 +297,31 @@ func parseMailboxName(localPart string) (result string, err error) {
 	if idx := strings.Index(result, "+"); idx > -1 {
 		result = result[0:idx]
 	}
+	//test for alternate address
+	if idx := strings.Index(result, "a808-"); idx > -1 {
+		
+		reg, err := regexp.Compile("a808-")
+		if err != nil {
+		    panic(err)
+		}
+		processedString := reg.ReplaceAllString(result, "")
+		
+		i, err := strconv.ParseInt(processedString, 36, 32)
+		if err != nil {
+		    panic(err)
+		}
+		i = i - 12345
+		
+		reversed := strconv.Itoa(int(i))
+		reversed = Reverse(reversed)
+		removeone := reversed[0:len(reversed)-1]
+
+		backtoint, err := strconv.Atoi(removeone)
+		if err != nil {
+		    panic(err)
+		}
+		base36out := strconv.FormatInt(int64(backtoint), 36)
+		result = base36out
+	}
 	return result, nil
 }

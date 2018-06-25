@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
+	 "strconv"
+        "regexp"
 
 	"github.com/jhillyerd/inbucket/pkg/config"
 	"github.com/jhillyerd/inbucket/pkg/stringutil"
@@ -14,6 +16,15 @@ import (
 type Addressing struct {
 	Config *config.Root
 }
+
+func Reverse(s string) string {
+    runes := []rune(s)
+    for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+        runes[i], runes[j] = runes[j], runes[i]
+    }
+    return string(runes)
+}
+
 
 // ExtractMailbox extracts the mailbox name from a partial email address.
 func (a *Addressing) ExtractMailbox(address string) (string, error) {
